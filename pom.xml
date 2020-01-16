@@ -19,14 +19,10 @@
     </properties>
 
     <dependencies>
-        <!--引入spring data redis 和 连接池-->
+        <!--引入spring data redis-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-pool2</artifactId>
         </dependency>
 
         <dependency>
