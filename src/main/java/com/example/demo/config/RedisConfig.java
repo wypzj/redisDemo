@@ -7,13 +7,26 @@ import com.fasterxml.jackson.databind.cfg.BaseSettings;
 import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator;
 import com.fasterxml.jackson.databind.ser.std.StringSerializer;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.cache.RedisCacheConfiguration;
+import org.springframework.data.redis.cache.RedisCacheManager;
+import org.springframework.data.redis.cache.RedisCacheWriter;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.RedisSerializationContext;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 import java.lang.reflect.Field;
+import java.time.Duration;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author a small asshole
@@ -23,8 +36,15 @@ import java.lang.reflect.Field;
  * @since 1.0
  */
 @Configuration
+@EnableCaching
 public class RedisConfig {
 
+    /**
+     * 自定义StringRedisTemplate覆盖SpringBoot自动配置的Template
+     * 自定义Redis中value的序列化方式，
+     * @param redisConnectionFactory
+     * @return
+     */
     @Bean
     public StringRedisTemplate stringRedisTemplate(RedisConnectionFactory redisConnectionFactory){
         StringRedisTemplate stringRedisTemplate = new StringRedisTemplate(redisConnectionFactory);
@@ -46,4 +66,14 @@ public class RedisConfig {
         stringRedisTemplate.afterPropertiesSet();
         return stringRedisTemplate;
     }
+
+    @Bean
+    public CacheManager cacheManagerBuilder(RedisConnectionFactory connectionFactory) {
+        RedisCacheConfiguration redisCacheConfiguration = RedisCacheConfiguration.defaultCacheConfig()
+                .entryTtl(Duration.ofSeconds(60)); // 设置缓存有效期一小时
+        return RedisCacheManager
+                .builder(RedisCacheWriter.nonLockingRedisCacheWriter(connectionFactory))
+                .cacheDefaults(redisCacheConfiguration).build();
+    }
+
 }
